@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Skull, Trophy, CheckCircle2, XCircle, ArrowRight, ExternalLink } from 'lucide-react';
+import { Skull, Trophy, CheckCircle2, XCircle, ArrowRight, ExternalLink, FileText } from 'lucide-react';
 import { sounds } from '../services/audio';
 
 const WINNER_FORM_URL = 'https://forms.gle/u1fEfRawSJYWGRDE7';
+const LOSS_FORM_URL = 'https://forms.gle/VoVYSmxdP4if3zzp6';
 
 export default function CinematicReveal({ result, participant, onViewLeaderboard }) {
   const [phase, setPhase] = useState(1);
@@ -156,6 +157,27 @@ export default function CinematicReveal({ result, participant, onViewLeaderboard
                 </a>
                 <p className="text-[11px] text-amber-300 font-mono tracking-wider">
                   ★ All victorious investigators must submit this verification form to finalize records.
+                </p>
+              </div>
+            )}
+
+            {/* LOSS GOOGLE FORM BUTTON (AFTER FAILED ACCUSATION) */}
+            {!result?.is_correct && (
+              <div className="space-y-2 w-full pt-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    sounds.playKey();
+                    window.location.href = LOSS_FORM_URL;
+                  }}
+                  className="w-full py-4 px-6 bg-gradient-to-r from-red-950 via-kira-red to-red-900 hover:from-red-900 hover:to-red-700 text-white font-mono font-bold text-sm sm:text-base tracking-widest uppercase rounded-xl shadow-crimson flex items-center justify-center gap-3 transition-all cursor-pointer border border-kira-red animate-pulse"
+                >
+                  <FileText className="w-5 h-5 text-white shrink-0" />
+                  <span>OPEN INVESTIGATION DEBRIEF (GOOGLE FORM)</span>
+                  <ExternalLink className="w-4 h-4 text-white shrink-0" />
+                </button>
+                <p className="text-[11px] text-red-400 font-mono tracking-wider">
+                  ⚠️ Accusation failed. Investigation terminated permanently. Please complete the debrief form.
                 </p>
               </div>
             )}

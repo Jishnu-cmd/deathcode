@@ -1,16 +1,28 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Skull, HeartCrack, AlertOctagon, Activity, FileText, ExternalLink, ShieldAlert } from 'lucide-react';
 import { sounds } from '../services/audio';
 
 const GOOGLE_FORM_URL = 'https://forms.gle/VoVYSmxdP4if3zzp6';
 
 export default function EliminatedScreen({ participant, onViewLeaderboard }) {
-  const [countdown, setCountdown] = useState(5);
+  const [countdown, setCountdown] = useState(3);
+  const redirectedRef = useRef(false);
 
   useEffect(() => {
     sounds.playHeartAttack();
 
-    // Lock permanent elimination in browser storage so refreshing cannot bypass
+    // Exit fullscreen if active so browser doesn't trap window or block redirects
+    try {
+      if (document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement) {
+        if (document.exitFullscreen) {
+          document.exitFullscreen().catch(() => {});
+        } else if (document.webkitExitFullscreen) {
+          document.webkitExitFullscreen();
+        }
+      }
+    } catch (_) {}
+
+    // Lock permanent elimination in browser storage so refreshing cannot restart
     try {
       localStorage.setItem('death_code_eliminated', 'true');
       if (participant?.team_name) {
@@ -24,19 +36,15 @@ export default function EliminatedScreen({ participant, onViewLeaderboard }) {
       }
     } catch (_) {}
 
-    // Attempt to open the Google Form in a new tab immediately
-    try {
-      window.open(GOOGLE_FORM_URL, '_blank');
-    } catch (e) {
-      console.warn('Auto window.open blocked by browser:', e);
-    }
-
-    // Auto-redirect timer to Google Form in case popup was blocked or user is waiting
+    // Auto-redirect to Google Form after 3 seconds
     const timer = setInterval(() => {
       setCountdown((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
-          window.location.href = GOOGLE_FORM_URL;
+          if (!redirectedRef.current) {
+            redirectedRef.current = true;
+            window.location.href = GOOGLE_FORM_URL;
+          }
           return 0;
         }
         return prev - 1;
@@ -44,9 +52,10 @@ export default function EliminatedScreen({ participant, onViewLeaderboard }) {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [participant]);
+  }, []); // Empty dependency array ensures timer is never prematurely reset!
 
   const handleOpenForm = () => {
+    redirectedRef.current = true;
     sounds.playKey();
     window.location.href = GOOGLE_FORM_URL;
   };
@@ -125,32 +134,42 @@ export default function EliminatedScreen({ participant, onViewLeaderboard }) {
             <span>RE-ENTRY PROHIBITED // NO RESTART PERMITTED</span>
           </div>
           <p className="text-gray-300 text-center">
-            Your investigation has permanently ceased. Kira and the Task Force have locked this terminal. Please complete the mandatory post-mortem investigation debrief form below.
+            Your investigation has ceased permanently. Restarting is disabled. You are being redirected to the mandatory debrief Google Form.
           </p>
         </div>
 
-        {/* Mandatory Google Form Action (Replaces Restart Button) */}
+        {/* Mandatory Google Form Action (Direct button & Auto-forward) */}
         <div className="pt-2 space-y-3">
-          <a
-            href={GOOGLE_FORM_URL}
-            target="_blank"
-            rel="noopener noreferrer"
+          <button
+            type="button"
             onClick={handleOpenForm}
             className="w-full py-4 px-6 bg-gradient-to-r from-red-950 via-kira-red to-red-900 hover:from-red-900 hover:via-red-600 hover:to-red-800 text-white font-mono font-bold text-sm sm:text-base tracking-widest uppercase rounded-xl shadow-crimson hover:shadow-crimson-heavy flex items-center justify-center gap-3 transition-all cursor-pointer border border-kira-red animate-pulse"
           >
             <FileText className="w-5 h-5 text-white shrink-0" />
             <span>OPEN INVESTIGATION DEBRIEF (GOOGLE FORM)</span>
             <ExternalLink className="w-4 h-4 text-white shrink-0" />
-          </a>
+          </button>
 
-          <div className="text-[11px] font-mono text-gray-400 flex items-center justify-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-kira-red animate-ping" />
+          <div className="text-xs font-mono text-gray-400 flex items-center justify-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-kira-red animate-ping" />
             <span>
               {countdown > 0
                 ? `Redirecting to Google Form in ${countdown}s...`
                 : 'Redirecting to Google Form now...'}
             </span>
           </div>
+
+          <p className="text-[11px] font-mono text-gray-400 text-center pt-1">
+            If redirection does not start,{' '}
+            <a
+              href={GOOGLE_FORM_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-kira-red underline hover:text-red-400 font-bold"
+            >
+              click here to open Google Form
+            </a>.
+          </p>
         </div>
 
       </div>

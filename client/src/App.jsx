@@ -11,8 +11,11 @@ import CinematicReveal from './components/CinematicReveal';
 import Leaderboard from './components/Leaderboard';
 import { getMyProfile, getCurrentQuiz, advanceRound, resetEvent } from './services/api';
 import { sounds } from './services/audio';
-import { Skull, Clock, AlertTriangle, ShieldCheck, RotateCcw } from 'lucide-react';
+import { Skull, Clock, AlertTriangle, ShieldCheck, RotateCcw, FileText, ExternalLink, Trophy } from 'lucide-react';
 import deathThemeBg from './assets/death_note_theme_bg.jpg';
+
+const LOSS_FORM_URL = 'https://forms.gle/VoVYSmxdP4if3zzp6';
+const WINNER_FORM_URL = 'https://forms.gle/u1fEfRawSJYWGRDE7';
 
 export default function App() {
   const [participant, setParticipant] = useState(null);
@@ -291,16 +294,38 @@ export default function App() {
                         <div className="text-4xl font-bold text-l-cyan">{participant.score} PTS</div>
                       </div>
 
-                      <div className="flex justify-center pt-2">
-                        <button
-                          onClick={() => {
-                            localStorage.removeItem('death_code_reg_id');
-                            window.location.reload();
-                          }}
-                          className="px-8 py-3 bg-kira-red hover:bg-red-700 text-white font-mono font-bold text-xs tracking-widest uppercase rounded-lg shadow-crimson transition-all cursor-pointer"
-                        >
-                          START NEW INVESTIGATION
-                        </button>
+                      <div className="pt-4 max-w-md mx-auto space-y-3">
+                        {participant?.is_completed === 1 || (typeof window !== 'undefined' && localStorage.getItem('death_code_winner') === 'true') ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              sounds.playBell();
+                              window.location.href = WINNER_FORM_URL;
+                            }}
+                            className="w-full py-4 px-6 bg-gradient-to-r from-yellow-500 via-amber-400 to-yellow-500 hover:from-yellow-400 text-black font-mono font-bold text-sm tracking-widest uppercase rounded-xl shadow-lg flex items-center justify-center gap-3 transition-all cursor-pointer border-2 border-yellow-200 animate-pulse"
+                          >
+                            <Trophy className="w-5 h-5 text-black shrink-0" />
+                            <span>SUBMIT WINNER CERTIFICATE (GOOGLE FORM)</span>
+                            <ExternalLink className="w-4 h-4 text-black shrink-0" />
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              sounds.playKey();
+                              window.location.href = LOSS_FORM_URL;
+                            }}
+                            className="w-full py-4 px-6 bg-gradient-to-r from-red-950 via-kira-red to-red-900 hover:from-red-900 text-white font-mono font-bold text-sm tracking-widest uppercase rounded-xl shadow-crimson flex items-center justify-center gap-3 transition-all cursor-pointer border border-kira-red animate-pulse"
+                          >
+                            <FileText className="w-5 h-5 text-white shrink-0" />
+                            <span>OPEN INVESTIGATION DEBRIEF (GOOGLE FORM)</span>
+                            <ExternalLink className="w-4 h-4 text-white shrink-0" />
+                          </button>
+                        )}
+
+                        <div className="p-3 rounded-lg bg-black/80 border border-red-900/60 font-mono text-[11px] text-red-400 text-center">
+                          ⚠️ CASE ARCHIVED: Restarting is permanently disabled by Task Force protocol.
+                        </div>
                       </div>
                     </div>
                   )
