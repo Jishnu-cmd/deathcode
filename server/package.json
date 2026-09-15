@@ -1,0 +1,15 @@
+{
+  "name": "death-code-server",
+  "version": "1.0.0",
+  "description": "Death Code - The Kira Protocol Event Server",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "seed": "node seed_data.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "ws": "^8.18.0"
+  }
+}
